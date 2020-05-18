@@ -5,6 +5,8 @@ import com.mproduits.dao.ProductDao;
 import com.mproduits.model.Product;
 import com.mproduits.web.exceptions.ProductNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Health;
+import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-public class ProductController {
+public class ProductController implements HealthIndicator {
 
     @Autowired
     ProductDao productDao;
@@ -41,6 +43,16 @@ public class ProductController {
         if(!product.isPresent())  throw new ProductNotFoundException("Le produit correspondant à l'id " + id + " n'existe pas");
 
         return product;
+    }
+
+    @Override
+    public Health health() {
+        List<Product> products = productDao.findAll();
+
+        if(products.isEmpty()) {
+            return Health.down().build();
+        }
+        return Health.up().build();
     }
 }
 
